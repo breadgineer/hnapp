@@ -1,4 +1,8 @@
-import { createApp } from 'vue'
-import App from './App.vue'
+import Vue from "vue";
+import App from "./App.vue";
+// import './style.css'
+import 'bulma/css/bulma.css'
 
-createApp(App).mount('#app')
+new Vue({
+    render: h => h(App)
+}).$mount("#app");
