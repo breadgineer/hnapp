@@ -1,7 +1,16 @@
-<template v-if="articles" >
-  <body>
+<template>
+  <div class="page-content">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
+    <div class="header">
+      <p class="page-title">Hacker News Feed</p>
+    </div>
+    <div class="body">
     <article-card v-for="article in articles" :key="article.id" :article="article"/>
-  </body>
+    </div>
+  </div>
+
 </template>
 
 <script>
@@ -24,7 +33,7 @@ export default {
       }
     },
 
-    async getNewArticleIds() {
+    async fetchNewArticleIds() {
       try {
         const response = await fetch("https://hacker-news.firebaseio.com/v0/newstories.json?print=pretty")
         await this.checkResponseOk(response)
@@ -37,10 +46,10 @@ export default {
 
     },
 
-    async getNewArticles() {
+    async fetchNewArticles() {
       const urlHead = "https://hacker-news.firebaseio.com/v0/item/"
       const urlTail = ".json?print=pretty"
-      const articleIds = await this.getNewArticleIds()
+      const articleIds = await this.fetchNewArticleIds()
       const _articles = []
 
       try {
@@ -53,38 +62,96 @@ export default {
           _articles.push(article)
 
         }
-        this.articles.push(..._articles)
+        this.articles = _articles
+        this.setArticlesInBrowser(_articles)
+
+
       } catch (error){
         console.log(`Could not fetch articles: ${error}`)
       }
     },
 
+    setArticlesInBrowser(data) {
+      const fetchedArticles = {
+        timestamp: Date.now(),
+        articles: data
+      }
+      localStorage.setItem("fetchedArticles",JSON.stringify(fetchedArticles))
+    },
+
+    getArticlesFromBrowser() {
+      return JSON.parse(localStorage.getItem("fetchedArticles"))
+
+    },
+
+    renderStoredArticles() {
+      if (localStorage.fetchedArticles) {
+        const storedArticles = this.getArticlesFromBrowser()
+        this.articles = storedArticles.articles
+      }
+    },
+
+    async getArticles() {
+      const refreshTime = 120000
+      const now = Date.now()
+      const lastFetchTime = this.getArticlesFromBrowser().timestamp
+      const timeSinceLastFetch = now - lastFetchTime
+      const timeUntilNextRefreshCall = (refreshTime - timeSinceLastFetch)
+      console.log(timeSinceLastFetch)
+      console.log(`${timeUntilNextRefreshCall}s until the next API call`)
+      const fetchNewArticles = timeSinceLastFetch > refreshTime
+      this.renderStoredArticles();
+      if (!fetchNewArticles || timeUntilNextRefreshCall > 0 ) {
+        setTimeout(()=> this.getArticles(),timeUntilNextRefreshCall);
+      } else {
+        await this.fetchNewArticles();
+        setTimeout(()=> this.getArticles(),refreshTime);
+      }
+
+    },
+
   },
   async mounted() {
-      await this.getNewArticles()
+      if (!this.getArticlesFromBrowser()){
+        await this.fetchNewArticles()
+      }
+      await this.getArticles()
   }
 }
 </script>
 
 <style>
 
-#app {
 
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
-
-}
-body {
-
+.page-content{
+  margin:auto;
   display: flex;
   flex-direction: column;
-  place-items: center;
-  min-width: 320px;
+  align-items: center;
+  justify-content: center;
+
+}
+
+.header {
+  padding-top: 40px;
+  margin-bottom: 40px;
+  text-align: center;
+  background-color: #ffffff;
+  width: 100%;
+  position: fixed;
+  top: 0;
+}
+.body {
+  margin: 20px 0px;
+  padding: 120px 20px 0;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
+  width: 700px;
+
+}
+.page-title {
+  font-family: 'Koulen', cursive;
+  font-size: 60px;
 }
 </style>
