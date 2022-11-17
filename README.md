@@ -1,5 +1,7 @@
 # hnapp
 
+Small app that fetches latest news from the Hacker News API
+
 ## Project setup
 ```
 npm install
