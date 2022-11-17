@@ -1,1 +1,1 @@
-web: npm serve
+web: bin/start-nginx-solo npm run serve
