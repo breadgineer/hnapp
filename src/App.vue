@@ -95,7 +95,9 @@ export default {
     },
 
     getArticlesFromBrowser() {
-      return JSON.parse(localStorage.getItem("fetchedArticles"))
+      if (localStorage.fetchedArticles){
+        return JSON.parse(localStorage.getItem("fetchedArticles"))
+      }
 
     },
 
