@@ -170,4 +170,9 @@ export default {
   font-family: 'Koulen', cursive;
   font-size: 60px;
 }
+.spinner {
+  position: absolute;
+  top: 50%;
+  left: 48%;
+}
 </style>
