@@ -45,9 +45,6 @@ http {
     location = /index.html {
       add_header Cache-Control "no-store, no-cache";
       add_header Strict-Transport-Security "max-age=31536002;";
-      add_header X-Content-Type-Options "nosniff";
-      add_header X-XSS-Protection "1; mode=block";
-      add_header Content-Security-Policy "default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';";
 
       try_files $uri $uri/ =404;
     }
@@ -77,6 +74,15 @@ http {
     # Need this b/c setting $fallback to =404 will try #{root}=404 instead of returning a 404
     location @404 {
       return 404;
+    }
+
+    # Redirect all request on /api/* to backend server
+    set $api_endpoint '<%= "#{ENV['VITE_API_PROTOCOL']}://#{ENV['VITE_API_ENDPOINT']}" %>';
+    location /api/ {
+      rewrite ^/api//?(.*)$ /$1 break;
+      proxy_pass $api_endpoint;
+      proxy_ssl_server_name on;
+      proxy_redirect $api_endpoint/ /api/;
     }
   }
 }
