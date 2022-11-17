@@ -7,7 +7,8 @@
       <p class="page-title">Hacker News Feed</p>
     </div>
     <div class="body">
-    <article-card v-for="article in articles" :key="article.id" :article="article"/>
+      <spinner v-show="fetchingArticles"></spinner>
+      <article-card v-for="article in articles" :key="article.id" :article="article"/>
     </div>
   </div>
 
@@ -15,15 +16,18 @@
 
 <script>
 import ArticleCard from "@/components/ArticleCard";
+import Spinner from 'vue-simple-spinner'
 
 export default {
   name: 'App',
   components: {
     ArticleCard,
+    Spinner,
   },
   data() {
     return {
-      articles: []
+      articles: [],
+      fetchingArticles: true,
 
   }},
   methods: {
@@ -58,7 +62,7 @@ export default {
           const response = await fetch(`${urlHead}${id}${urlTail}`)
           await this.checkResponseOk(response)
           const article = await response.json()
-
+          article.time = this.getPostDate(article)
           _articles.push(article)
 
         }
@@ -70,6 +74,17 @@ export default {
         console.log(`Could not fetch articles: ${error}`)
       }
     },
+
+    getPostDate(article) {
+        let time = new Date(article.time * 1000)
+        let today = new Date()
+        if (time.getDate() === today.getDate()){
+          return `Today at ${time.getHours()}:${time.getMinutes()}`
+        } else {
+          return `${time.getMonth()}.${time.getDate()}.${time.getFullYear()}`
+        }
+      },
+
 
     setArticlesInBrowser(data) {
       const fetchedArticles = {
@@ -97,10 +112,8 @@ export default {
       const lastFetchTime = this.getArticlesFromBrowser().timestamp
       const timeSinceLastFetch = now - lastFetchTime
       const timeUntilNextRefreshCall = (refreshTime - timeSinceLastFetch)
-      console.log(timeSinceLastFetch)
-      console.log(`${timeUntilNextRefreshCall}s until the next API call`)
+      console.log(`${timeUntilNextRefreshCall/1000}s until the next API call`)
       const fetchNewArticles = timeSinceLastFetch > refreshTime
-      this.renderStoredArticles();
       if (!fetchNewArticles || timeUntilNextRefreshCall > 0 ) {
         setTimeout(()=> this.getArticles(),timeUntilNextRefreshCall);
       } else {
@@ -115,7 +128,10 @@ export default {
       if (!this.getArticlesFromBrowser()){
         await this.fetchNewArticles()
       }
+      this.fetchingArticles = false
+      this.renderStoredArticles();
       await this.getArticles()
+
   }
 }
 </script>

@@ -20,7 +20,7 @@
               </div>
               <div class="footer-info-item">
                 <p>
-                  posted on <strong> {{ this.$props.article.time }} </strong>
+                  posted: <strong> {{ this.$props.article.time }} </strong>
                 </p>
               </div>
 
@@ -45,26 +45,8 @@ export default {
       score: Number,
       time: String
     },
-    watched:{
-      article(){
-        console.log("time chancged")
-      }
-    },
-    methods:{
-      getPostDate(time) {
-          const timeNow = Date.now()
-          const timeDifference = Math.abs(time - timeNow)
-          if (!timeDifference.getDay()) {
-            console.log(`${timeDifference.getHours()} hours ago`)
-            return `${timeDifference.getHours()} hours ago`;
-          } else {
-            const day = timeDifference.getDay() === 1 ? 'day' : 'days'
-            return `${timeDifference.getDay()} ${day} ago`;
-          }
-        },
 
     }
-  }
 }
 
 
